@@ -1,0 +1,110 @@
+-- Existing script setup
+local repo = 'https://raw.githubusercontent.com/LionTheGreatRealFrFr/MobileLinoriaLib/main/'
+
+local Library = loadstring(game:HttpGet(repo .. 'Library.lua'))()
+local ThemeManager = loadstring(game:HttpGet(repo .. 'addons/ThemeManager.lua'))()
+local SaveManager = loadstring(game:HttpGet(repo .. 'addons/SaveManager.lua'))()
+
+local Window = Library:CreateWindow({
+    Title = 'gagagoogoo',
+    Center = true,
+    AutoShow = true,
+    TabPadding = 8,
+    MenuFadeTime = 0.2
+})
+
+-- Define tabs and groupboxes
+local Tabs = {
+    Main = Window:AddTab('main'),
+    ['UI Settings'] = Window:AddTab('UI Settings'),
+}
+
+local LeftGroupBox = Tabs.Main:AddLeftGroupbox('timing')
+
+-- Existing UI elements and controls
+-- (Add the rest of your existing code here for UI elements like toggles, buttons, sliders, etc.)
+
+-- New script to monitor color changes and trigger actions
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local localPlayer = Players.LocalPlayer
+local character = localPlayer.Character or localPlayer.CharacterAdded:Wait()
+local head = character:WaitForChild("Head")
+local meterUi = head:WaitForChild("MeterUi Vertical Bar")
+local bar = meterUi:WaitForChild("Bar")
+local targetElement = bar:WaitForChild("55")
+
+local targetColor = targetElement.BackgroundColor3
+
+-- Function to perform action when the color changes
+local function performAction()
+    print("Action triggered due to color change")
+    game:GetService("VirtualInputManager"):SendKeyEvent(false, "E", false, game)
+end
+
+-- Function to continuously check the color
+local function monitorColor()
+    local lastColor = targetElement.BackgroundColor3
+    local function onRenderStep()
+        local currentColor = targetElement.BackgroundColor3
+        if currentColor ~= lastColor then
+            performAction()
+            lastColor = currentColor
+        end
+    end
+    
+    -- Connect the render step
+    RunService.RenderStepped:Connect(onRenderStep)
+end
+
+-- Slider to set the target element index
+local targetElementIndex = 55 -- Default value
+LeftGroupBox:AddSlider('TargetElementSlider', {
+    Text = 'Target Element Index',
+    Default = targetElementIndex,
+    Min = 0,
+    Max = 100, -- Adjust the max value as needed based on your game's elements
+    Rounding = 0,
+
+    Callback = function(Value)
+        targetElementIndex = Value
+        targetElement = bar:WaitForChild(tostring(targetElementIndex)) -- Update target element
+        print("Target element set to:", targetElementIndex)
+    end
+})
+
+-- Add controls to start/stop color monitoring in the UI
+LeftGroupBox:AddToggle('MonitorColorToggle', {
+    Text = 'aimbot',
+    Default = false,
+    Tooltip = 'Toggle to start/stop monitoring the color of the target element',
+
+    Callback = function(Value)
+        if Value then
+            monitorColor()
+        end
+    end
+})
+
+-- Your existing code for SaveManager, ThemeManager, and UI settings
+-- (Add the rest of your existing code here for SaveManager, ThemeManager setup, and config menu)
+
+-- Addons setup
+ThemeManager:SetLibrary(Library)
+SaveManager:SetLibrary(Library)
+
+SaveManager:IgnoreThemeSettings()
+SaveManager:SetIgnoreIndexes({ 'MenuKeybind' })
+
+ThemeManager:SetFolder('MyScriptHub')
+SaveManager:SetFolder('MyScriptHub/specific-game')
+
+SaveManager:BuildConfigSection(Tabs['UI Settings'])
+ThemeManager:ApplyToTab(Tabs['UI Settings'])
+
+SaveManager:LoadAutoloadConfig()
+
+Library:OnUnload(function()
+    print('Unloaded!')
+    Library.Unloaded = true
+end)
