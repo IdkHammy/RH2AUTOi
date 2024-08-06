@@ -1,132 +1,49 @@
--- Load the new library
-loadstring(game:HttpGet('https://raw.githubusercontent.com/drillygzzly/Roblox-UI-Libs/main/Yun%20V2%20Lib/Yun%20V2%20Lib%20Source.lua'))()
+game.CoreGui:findFirstChild("ScreenGui").Enabled = false
 
-local Library = initLibrary()
-local Window = Library:Load({
-    name = "xan",
-    sizeX = 225,
-    sizeY = 312,
-    color = Color3.fromRGB(0, 0, 0)
-})
 
--- Define tabs
-local AimingTab = Window:Tab("Aiming")
-local UISettingsTab = Window:Tab("UI Settings")
+-- Create ScreenGui
+local screenGui = Instance.new("ScreenGui")
+local playerGui = game.Players.LocalPlayer:WaitForChild("PlayerGui")
+screenGui.Parent = playerGui
 
--- Define sections
-local AimingSection1 = AimingTab:Section({name = "Aim Assist", column = 1})
-local AimingSection2 = AimingTab:Section({name = "Silent Aimbot", column = 2})
-local VisualsSection1 = UISettingsTab:Section({name = "Settings", column = 1})
+-- Create Frame
+local frame = Instance.new("Frame")
+frame.Size = UDim2.new(0, 200, 0, 100)
+frame.Position = UDim2.new(0.5, -100, 0.5, -50)
+frame.BackgroundColor3 = Color3.new(0.2, 0.2, 0.2)
+frame.Active = true
+frame.Draggable = true
+frame.Parent = screenGui
 
--- Variables for monitoring color changes
-local Players = game:GetService("Players")
-local RunService = game:GetService("RunService")
-local localPlayer = Players.LocalPlayer
-local character = localPlayer.Character or localPlayer.CharacterAdded:Wait()
-local head = character:WaitForChild("Head")
-local meterUi = head:WaitForChild("MeterUi Vertical Bar")
-local bar = meterUi:WaitForChild("Bar")
-local targetElement = bar:WaitForChild("55")
-local targetElementIndex = 55
+-- Create TextLabel
+local textLabel = Instance.new("TextLabel")
+textLabel.Size = UDim2.new(0.8, 0, 0.2, 0)
+textLabel.Position = UDim2.new(0.1, 0, 0.1, 0)
+textLabel.BackgroundColor3 = Color3.new(0.8, 0.8, 0.8)
+textLabel.TextColor3 = Color3.new(0, 0, 0)
+textLabel.Text = "nigger"
+textLabel.Parent = frame
 
--- Function to perform action when the color changes
-local function performAction()
-    print("Action triggered due to color change")
-    game:GetService("VirtualInputManager"):SendKeyEvent(false, "E", false, game)
-end
+-- Create Button
+local button = Instance.new("TextButton")
+button.Size = UDim2.new(0.8, 0, 0.2, 0)
+button.Position = UDim2.new(0.1, 0, 0.4, 0)
+button.BackgroundColor3 = Color3.new(0.5, 0.5, 0.5)
+button.TextColor3 = Color3.new(1, 1, 1)
+button.Text = "Toggle Shaddow GUI"
+button.Parent = frame
 
--- Function to continuously check the color
-local function monitorColor()
-    local lastColor = targetElement.BackgroundColor3
-    local function onRenderStep()
-        local currentColor = targetElement.BackgroundColor3
-        if currentColor ~= lastColor then
-            performAction()
-            lastColor = currentColor
-        end
+-- Button click event to toggle the visibility of 'By Shaddow' GUI
+button.MouseButton1Click:Connect(function()
+    -- Find the 'By Shaddow' GUI element within PlayerGui
+    local shaddowGui = game.CoreGui:findFirstChild("ScreenGui")
+    if shaddowGui then
+        -- Toggle the visibility
+        shaddowGui.Enabled = not shaddowGui.Enabled
+        -- Update button text based on visibility
+        button.Text = shaddowGui.Enabled and "hide" or "show"
+    else
+        -- If 'By Shaddow' is not found, output a message
+        print("By Shaddow GUI not found.")
     end
-    
-    -- Connect the render step
-    RunService.RenderStepped:Connect(onRenderStep)
-end
-
--- Slider to set the target element index
-AimingSection1:Slider {
-    Name = "Target Element Index",
-    Default = targetElementIndex,
-    Min = 0,
-    Max = 100, -- Adjust the max value as needed based on your game's elements
-    Decimals = 0,
-    Flag = "targetElementIndexSlider",
-    callback = function(Value)
-        targetElementIndex = Value
-        targetElement = bar:WaitForChild(tostring(targetElementIndex)) -- Update target element
-        print("Target element set to:", targetElementIndex)
-    end
-}
-
--- Toggle to start/stop color monitoring
-AimingSection1:Toggle {
-    Name = "aimbot",
-    flag = "monitorColorToggle",
-    callback = function(Value)
-        if Value then
-            monitorColor()
-        end
-    end
-}
-
--- Slider to set the multiplier for SpaceCreator
-local multiplier = 5 -- Default value
-AimingSection2:Slider {
-    Name = "Velocity Multiplier",
-    Default = multiplier,
-    Min = 1,
-    Max = 10, -- Adjust the max value as needed
-    Decimals = 1,
-    Flag = "velocityMultiplierSlider",
-    callback = function(Value)
-        multiplier = Value
-        print("Velocity multiplier set to:", multiplier)
-    end
-}
-
--- Button to activate SpaceCreator functionality
-AimingSection2:Button {
-    Name = "dribblespace",
-    callback = function()
-        local humanoidRootPart = character:WaitForChild("HumanoidRootPart")
-
-        -- Connect to the DescendantAdded event to multiply velocity
-        humanoidRootPart.DescendantAdded:Connect(function(v)
-            if v:IsA('BodyVelocity') then
-                v.Velocity = v.Velocity * multiplier
-            end
-        end)
-
-        print("SpaceCreator activated. BodyVelocity will now have its velocity multiplied by", multiplier)
-    end
-}
-
--- UI Settings (for ThemeManager and SaveManager integration)
-local ThemeManager = loadstring(game:HttpGet('https://raw.githubusercontent.com/LionTheGreatRealFrFr/MobileLinoriaLib/main/addons/ThemeManager.lua'))()
-local SaveManager = loadstring(game:HttpGet('https://raw.githubusercontent.com/LionTheGreatRealFrFr/MobileLinoriaLib/main/addons/SaveManager.lua'))()
-
-ThemeManager:SetLibrary(Library)
-SaveManager:SetLibrary(Library)
-
-SaveManager:IgnoreThemeSettings()
-SaveManager:SetIgnoreIndexes({ 'MenuKeybind' })
-
-ThemeManager:SetFolder('MyScriptHub')
-SaveManager:SetFolder('MyScriptHub/specific-game')
-
-SaveManager:BuildConfigSection(UISettingsTab)
-ThemeManager:ApplyToTab(UISettingsTab)
-
-SaveManager:LoadAutoloadConfig()
-
-Library:OnUnload(function()
-    print('Unloaded!')
-    Library.Unloaded = true
 end)
